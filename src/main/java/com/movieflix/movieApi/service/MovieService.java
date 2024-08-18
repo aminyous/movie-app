@@ -12,4 +12,8 @@ public interface MovieService {
     MovieDto getMovie(Integer movieId);
 
     List<MovieDto> getAllMovies();
+
+    String deleteMovie(Integer movieId) throws IOException;
+
+    MovieDto updateMovie(Integer movieId, MovieDto movieDto, MultipartFile file) throws IOException;
 }

@@ -7,7 +7,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,10 +34,17 @@ public class MovieServiceImpl implements MovieService{
 
     @Override
     public MovieDto addMovie(MovieDto movieDto, MultipartFile file) throws IOException {
+
+        if (Files.exists(Paths.get(path + File.separator + file.getOriginalFilename()))){
+            throw new RuntimeException("File already exists! Please enter another file name.");
+        }
+
         String uploadedFilename =  fileService.uploadFile(path, file);
+
         movieDto.setPoster(uploadedFilename);
+
         Movie movie = new Movie(
-                movieDto.getMovieId(),
+                null,
                 movieDto.getTitle(),
                 movieDto.getDirector(),
                 movieDto.getStudio(),
@@ -61,7 +71,9 @@ public class MovieServiceImpl implements MovieService{
 
     @Override
     public MovieDto getMovie(Integer movieId) {
+
         Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new RuntimeException("Movie not found"));
+
         String posterUrl = baseURL + "/file/" + movie.getPoster();
 
         MovieDto response = new MovieDto(
@@ -99,5 +111,58 @@ public class MovieServiceImpl implements MovieService{
         }
 
         return movieDtos;
+    }
+
+    @Override
+    public String deleteMovie(Integer movieId) throws IOException {
+
+        Movie mv = movieRepository.findById(movieId).orElseThrow(() -> new RuntimeException("Movie not found"));
+
+        Files.deleteIfExists(Paths.get(path + File.separator + mv.getPoster()));
+        movieRepository.delete(mv);
+        return "Movie deleted with id = " + mv.getMovieId();
+    }
+
+    @Override
+    public MovieDto updateMovie(Integer movieId, MovieDto movieDto, MultipartFile file) throws IOException {
+
+        Movie mv = movieRepository.findById(movieId).orElseThrow(() -> new RuntimeException("Movie not found"));
+
+        String fileName = mv.getPoster();
+
+        if(file != null) {
+            Files.delete(Paths.get(path + File.separator + fileName));
+            fileName = fileService.uploadFile(path, file);
+        }
+
+        movieDto.setPoster(fileName);
+
+        Movie movie = new Movie(
+                mv.getMovieId(),
+                movieDto.getTitle(),
+                movieDto.getDirector(),
+                movieDto.getStudio(),
+                movieDto.getMovieCast(),
+                movieDto.getReleaseYear(),
+                movieDto.getPoster()
+        );
+
+        Movie updatedMovie = movieRepository.save(movie);
+
+        String posterUrl = baseURL + "/file/" + fileName;
+
+
+        MovieDto response = new MovieDto(
+                updatedMovie.getMovieId(),
+                updatedMovie.getTitle(),
+                updatedMovie.getDirector(),
+                updatedMovie.getStudio(),
+                updatedMovie.getMovieCast(),
+                updatedMovie.getReleaseYear(),
+                updatedMovie.getPoster(),
+                posterUrl
+        );
+        return response;
+
     }
 }
