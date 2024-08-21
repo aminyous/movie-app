@@ -1,6 +1,7 @@
 package com.movieflix.movieApi.service;
 
 import com.movieflix.movieApi.dto.MovieDto;
+import com.movieflix.movieApi.dto.MoviePageResponse;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -16,4 +17,9 @@ public interface MovieService {
     String deleteMovie(Integer movieId) throws IOException;
 
     MovieDto updateMovie(Integer movieId, MovieDto movieDto, MultipartFile file) throws IOException;
+
+    MoviePageResponse getAllMoviesWithPagination(Integer pageNumber, Integer pageSize);
+
+    MoviePageResponse getAllMoviesWithPaginationAndSorting(Integer pageNumber, Integer pageSize, String sortBy, String dir);
+
 }

@@ -3,14 +3,17 @@ package com.movieflix.movieApi.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.movieflix.movieApi.dto.MovieDto;
+import com.movieflix.movieApi.dto.MoviePageResponse;
 import com.movieflix.movieApi.exception.EmptyFileException;
 import com.movieflix.movieApi.service.MovieService;
+import com.movieflix.movieApi.utils.AppConstants;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.Inet4Address;
 import java.util.List;
 
 @RestController
@@ -72,5 +75,23 @@ public class MovieController {
 
         ObjectMapper objectMapper = new ObjectMapper();
         return  objectMapper.readValue(movieDtoObject, MovieDto.class);
+    }
+
+    @GetMapping("/allMoviePage")
+    public ResponseEntity<MoviePageResponse> getMoviesWithPagination(
+            @RequestParam(defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+            @RequestParam(defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
+            ){
+        return new ResponseEntity<>(movieService.getAllMoviesWithPagination(pageNumber, pageSize), HttpStatus.OK);
+    }
+
+    @GetMapping("/allMoviePageSort")
+    public ResponseEntity<MoviePageResponse> getMoviesWithPaginationWithSorting(
+            @RequestParam(defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+            @RequestParam(defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
+            @RequestParam(defaultValue = AppConstants.SORT_BY, required = false) String sortBy,
+            @RequestParam(defaultValue = AppConstants.SORT_DIR, required = false) String dir
+    ){
+        return new ResponseEntity<>(movieService.getAllMoviesWithPaginationAndSorting(pageNumber, pageSize, sortBy, dir), HttpStatus.OK);
     }
 }
